@@ -1,0 +1,38 @@
+{
+  "name": "billie-jean-dance",
+  "version": "1.0.0",
+  "description": "Michael Jackson《Billie Jean》舞步拆解教学网站：GSAP 火柴人动画演示 8 大经典舞步（太空步/转身/侧踢…），含分步教学、跟跳时间线、117 BPM 节拍器与 7 天练习计划。",
+  "keywords": [
+    "billie-jean",
+    "michael-jackson",
+    "dance",
+    "dance-lessons",
+    "moonwalk",
+    "gsap",
+    "animation",
+    "舞步教学",
+    "太空步"
+  ],
+  "license": "MIT",
+  "author": "Kilganon725",
+  "files": [
+    "index.html",
+    "css",
+    "js",
+    "docs",
+    "README.md"
+  ],
+  "scripts": {
+    "start": "python3 -m http.server 8734",
+    "preview": "python3 -m http.server 8734",
+    "pack": "npm pack"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Kilganon725/billie-jean-dance.git"
+  },
+  "homepage": "https://github.com/Kilganon725/billie-jean-dance#readme",
+  "engines": {
+    "node": ">=14"
+  }
+}

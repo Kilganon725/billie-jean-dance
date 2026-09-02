@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BILLIE JEAN · 舞步拆解教学 — Michael Jackson</title>
+  <meta name="description" content="用 GSAP 动画拆解 Michael Jackson《Billie Jean》经典舞步：太空步、转身、侧踢……一步步带你学会。">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Noto+Sans+SC:wght@400;500;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <div id="progress" class="progress"></div>
+
+  <nav id="nav" class="nav">
+    <a class="nav-brand" href="#hero">BILLIE<span>JEAN</span></a>
+    <div class="nav-links">
+      <a href="#about">关于</a>
+      <a href="#moves">动作</a>
+      <a href="#timeline">跟跳时间线</a>
+      <a href="#metronome">节拍器</a>
+      <a href="#plan">练习计划</a>
+    </div>
+  </nav>
+
+  <!-- ================= HERO ================= -->
+  <header id="hero" class="hero">
+    <div class="hero-inner">
+      <p class="hero-kicker">MICHAEL JACKSON · MOTOWN 25 · 1983</p>
+      <h1 id="hero-title" class="split hero-title">BILLIE JEAN</h1>
+      <p id="hero-sub" class="hero-sub">经典舞步拆解 & 教学 —— 跟着 GSAP 火柴人，一步步学会 MJ 的招牌动作</p>
+      <div id="hero-badges" class="hero-badges">
+        <span>117 BPM 原速</span>
+        <span>8 大舞步</span>
+        <span>太空步诞生之夜</span>
+      </div>
+      <div id="hero-cta" class="hero-cta">
+        <a href="#moves" class="btn-gold">开始学舞 ↓</a>
+        <a href="#about" class="btn-ghost">关于这首歌</a>
+      </div>
+    </div>
+    <div class="hero-stage">
+      <div id="hero-demo" class="hero-demo"></div>
+      <div class="hero-floor" aria-hidden="true"></div>
+    </div>
+    <div class="hero-grain" aria-hidden="true"></div>
+  </header>
+
+  <!-- ================= MARQUEE ================= -->
+  <div class="marquee" aria-hidden="true">
+    <div class="marquee-track">
+      <span>MOONWALK 太空步</span><span>THE SPIN 转身</span><span>SIDE GLIDE 侧滑</span>
+      <span>TOE STAND 脚尖站立</span><span>SIDE KICK 侧踢</span><span>HEEL-TOE 滑动</span>
+      <span>THE LEAN 前倾</span><span>HAT FLICK 甩帽</span>
+      <span>MOONWALK 太空步</span><span>THE SPIN 转身</span><span>SIDE GLIDE 侧滑</span>
+      <span>TOE STAND 脚尖站立</span><span>SIDE KICK 侧踢</span><span>HEEL-TOE 滑动</span>
+      <span>THE LEAN 前倾</span><span>HAT FLICK 甩帽</span>
+    </div>
+  </div>
+
+  <!-- ================= ABOUT ================= -->
+  <section id="about" class="section about">
+    <div class="container">
+      <p class="sec-kicker reveal">THE SONG & THE DANCE</p>
+      <h2 class="sec-title reveal">关于这首歌和这段舞</h2>
+      <div class="about-grid">
+        <div class="about-card reveal">
+          <h3>🎵 这首歌</h3>
+          <p>《Billie Jean》出自 1983 年的专辑《Thriller》，是 MJ 最具代表性的单曲之一，BPM 117，律动藏在每一个切分音里。副歌一响，全世界都想跟着动。</p>
+        </div>
+        <div class="about-card reveal">
+          <h3>🕴️ 这段舞</h3>
+          <p>1983 年 Motown 25 周年晚会上，MJ 在 Billie Jean 现场表演中第一次公开表演<b>太空步</b>——他像在传送带上向后滑行，全场起立。这首歌从此和"滑步"绑定，成了每个舞者的必修课。</p>
+        </div>
+        <div class="about-card reveal">
+          <h3>🧠 怎么学</h3>
+          <p>本站把动作拆成 <b>8 个基础舞步</b>，每个都有可播放/调速的动画演示、分步拆解、要点和常见错误。先跟着节拍器找律动，再逐个动作磨，最后按时间线串成一段完整的副歌连招。</p>
+        </div>
+      </div>
+      <div class="stats reveal">
+        <div class="stat"><b data-count="42">0</b><span>年经典（1983 → 今）</span></div>
+        <div class="stat"><b data-count="117">0</b><span>BPM 原速节拍</span></div>
+        <div class="stat"><b data-count="8">0</b><span>大基础舞步</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= MOVES GRID ================= -->
+  <section id="moves" class="section moves">
+    <div class="container">
+      <p class="sec-kicker reveal">MOVE LIBRARY</p>
+      <h2 class="sec-title reveal">8 大舞步总览</h2>
+      <p class="sec-sub reveal">点击任意舞步，跳到对应的拆解教学</p>
+      <div id="moves-grid" class="moves-grid"></div>
+    </div>
+  </section>
+
+  <!-- ================= MOVE LESSONS (JS 渲染) ================= -->
+  <section id="lessons" class="section lessons">
+    <div class="container">
+      <p class="sec-kicker reveal">STEP BY STEP</p>
+      <h2 class="sec-title reveal">逐个拆解教学</h2>
+      <p class="sec-sub reveal">每个舞步：▶ 播放动画看动作 · 调速慢慢跟 · 步骤自动高亮</p>
+      <div id="moves-render"></div>
+    </div>
+  </section>
+
+  <!-- ================= TIMELINE ================= -->
+  <section id="timeline" class="section timeline">
+    <div class="container">
+      <p class="sec-kicker reveal">THE CHORUS SEQUENCE</p>
+      <h2 class="sec-title reveal">跟跳时间线：副歌 8 拍连招</h2>
+      <p class="sec-sub reveal">简化版副歌编排（117 BPM · 2 小节 = 8 拍），跟着鼓点一格一格跳</p>
+
+      <div id="beat-dots" class="beat-dots reveal" aria-hidden="true">
+        <span class="beat-dot acc"></span><span class="beat-dot"></span>
+        <span class="beat-dot"></span><span class="beat-dot"></span>
+        <span class="beat-dot acc"></span><span class="beat-dot"></span>
+        <span class="beat-dot"></span><span class="beat-dot"></span>
+      </div>
+
+      <div class="timeline-grid">
+        <div class="tl-row reveal"><span class="tl-count">1</span><span class="tl-move">右脚点地 ×2</span><span class="tl-note">准备，身体随节拍起伏</span></div>
+        <div class="tl-row reveal"><span class="tl-count">2</span><span class="tl-move">左脚点地 ×2</span><span class="tl-note">保持弹性，重心交替</span></div>
+        <div class="tl-row reveal"><span class="tl-count">3</span><span class="tl-move">右侧滑一步</span><span class="tl-note">脚底贴地，眼神向右</span></div>
+        <div class="tl-row reveal"><span class="tl-count">4</span><span class="tl-move">收脚并拢（微蹲）</span><span class="tl-note">为转身蓄力</span></div>
+        <div class="tl-row reveal"><span class="tl-count">5</span><span class="tl-move">转身 360°</span><span class="tl-note">盯点旋转，转完定格</span></div>
+        <div class="tl-row reveal"><span class="tl-count">6</span><span class="tl-move">脚尖站立 + 指天</span><span class="tl-note">标志性定格，保持 2 拍</span></div>
+        <div class="tl-row reveal"><span class="tl-count">7</span><span class="tl-move">侧踢（右腿）</span><span class="tl-note">踢出定格一拍，手指天</span></div>
+        <div class="tl-row reveal"><span class="tl-count">8</span><span class="tl-move">收腿 + 抓帽定点</span><span class="tl-note">收势，接下一乐句</span></div>
+      </div>
+      <p class="tl-fine reveal">※ 原版现场动作更自由多变，这里提供一套好上手的简化编排；熟悉后可以自己加花。</p>
+    </div>
+  </section>
+
+  <!-- ================= METRONOME ================= -->
+  <section id="metronome" class="section metronome">
+    <div class="container">
+      <p class="sec-kicker reveal">FIND THE POCKET</p>
+      <h2 class="sec-title reveal">节拍器</h2>
+      <p class="sec-sub reveal">Billie Jean 原速 <b>117 BPM</b>。先让身体踩进律动，再练动作。</p>
+      <div class="metro-box reveal">
+        <div class="metro-main">
+          <div id="metro-disc" class="metro-disc">
+            <span id="metro-beat">1</span>
+          </div>
+          <button id="metro-btn" class="btn-gold">开始节拍</button>
+        </div>
+        <div class="metro-side">
+          <label for="bpm">速度 <b id="bpm-val">117</b> BPM</label>
+          <input id="bpm" type="range" min="60" max="140" value="117" step="1">
+          <p class="metro-tip">💡 练习建议：先用 0.75× 慢速磨动作，动作顺了再回到 117 原速。</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= PLAN ================= -->
+  <section id="plan" class="section plan">
+    <div class="container">
+      <p class="sec-kicker reveal">7-DAY PLAN</p>
+      <h2 class="sec-title reveal">7 天从零学会 Billie Jean</h2>
+      <p class="sec-sub reveal">每天 15-20 分钟，别贪多，练对比练快重要</p>
+      <div class="plan-grid">
+        <div class="plan-card reveal"><span class="plan-day">DAY 1</span><h3>找节拍</h3><p>打开节拍器 117，跟着点头/跺脚；循环听副歌，数出 8 拍。</p></div>
+        <div class="plan-card reveal"><span class="plan-day">DAY 2</span><h3>太空步分解</h3><p>只练"滑-换重心-滑"：0.5× 慢速 ×20 组，先不追求连贯。</p></div>
+        <div class="plan-card reveal"><span class="plan-day">DAY 3</span><h3>滑步组合</h3><p>侧滑步 + 脚尖站立连起来，练习"动-停"的对比。</p></div>
+        <div class="plan-card reveal"><span class="plan-day">DAY 4</span><h3>转身 + 侧踢</h3><p>练盯点（spotting）防晕；转身落地立刻接侧踢定格。</p></div>
+        <div class="plan-card reveal"><span class="plan-day">DAY 5</span><h3>串 8 拍连招</h3><p>按"跟跳时间线"从第 1 拍到第 8 拍，0.75× 慢速串一遍。</p></div>
+        <div class="plan-card reveal"><span class="plan-day">DAY 6</span><h3>对镜纠错</h3><p>开节拍器对着镜子跳，录视频回看，对照每个动作的"常见错误"。</p></div>
+        <div class="plan-card reveal"><span class="plan-day">DAY 7</span><h3>完整跟跳</h3><p>117 BPM 完整跳 3 遍，加上手势、表情，收工！🎉</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= FOOTER ================= -->
+  <footer class="footer">
+    <div class="container">
+      <p class="footer-brand">BILLIE<span>JEAN</span> DANCE LAB</p>
+      <p class="footer-note">⚠️ 舞蹈有风险，练习请量力而行；高风险动作（如前倾）务必做好保护。<br>
+      本站为舞蹈爱好者制作的致敬学习网站，与 Michael Jackson 官方无关 · 演示为简化示意，非专业舞蹈教学。</p>
+      <p class="footer-tech">Built with GSAP + ScrollTrigger · 愿你在舞池里像 MJ 一样自由</p>
+    </div>
+  </footer>
+
+  <button id="to-top" class="to-top" aria-label="回到顶部">↑</button>
+
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/ScrollTrigger.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/ScrollToPlugin.min.js"></script>
+  <script src="js/skeleton.js"></script>
+  <script src="js/moves.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>

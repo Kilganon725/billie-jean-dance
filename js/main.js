@@ -52,6 +52,19 @@
       '</div>' +
       '<p class="move-music"><span class="chip">♪ ' + m.music + '</span></p>' +
       (m.danger ? '<div class="danger-note">⚠️ <b>高风险动作</b>：前倾需要极强的核心与跟腱力量，原版依赖特制鞋底钩子。请从 15° 或扶墙练习开始，量力而行，切勿直接挑战 45°。</div>' : '') +
+      '<div class="analysis-panel">' +
+      '<div class="mini-title">🧠 动作分析 <small>（高亮关节 = 本动作的驱动关节，动画中脉动）</small></div>' +
+      '<div class="ana-joints">' +
+      (m.analysis.joints.map(function (j) {
+        var d = BJ.JOINT_DEF[j];
+        return '<span class="j-chip" style="--jc:' + d.color + '">' + d.cn + ' ' + d.en + '</span>';
+      }).join('')) +
+      '</div>' +
+      '<div class="ana-lines">' +
+      '<div class="ana-line"><span class="ana-k">⚡ 发力</span><span>' + m.analysis.power + '</span></div>' +
+      '<div class="ana-line"><span class="ana-k">⚖️ 重心</span><span>' + m.analysis.weight + '</span></div>' +
+      '<div class="ana-line"><span class="ana-k">👁 注意</span><span>' + m.analysis.note + '</span></div>' +
+      '</div></div>' +
       '<div class="mini-title">拆解步骤 <small>（播放动画时自动高亮）</small></div>' +
       '<ol class="step-list">' + m.steps.map(function (s, si) {
         return '<li data-step="' + si + '"><span class="step-no">' + (si + 1) + '</span>' + s + '</li>';
@@ -66,6 +79,18 @@
       '</div>';
     wrap.appendChild(sec);
   });
+
+  /* ---------- 2b. 关节图例 ---------- */
+  var legend = $('#joint-legend');
+  if (legend) {
+    legend.innerHTML =
+      '<span class="jl-hint">关节图例：</span>' +
+      Object.keys(BJ.JOINT_DEF).map(function (k) {
+        var d = BJ.JOINT_DEF[k];
+        return '<span class="j-chip" style="--jc:' + d.color + '">' + d.cn + ' ' + d.en + '</span>';
+      }).join('') +
+      '<span class="jl-tip">▶ 播放动画看驱动关节脉动 · 点「标注」显示全部关节名</span>';
+  }
 
   /* ---------- 3. 初始化动作演示（暂停待播放） ---------- */
   MOVES.forEach(function (m) {

@@ -1,7 +1,8 @@
 /* ============================================================
  * Billie Jean Dance — 8 大舞步数据
- * keyframes: [时间, 姿态局部值, ease?]（其余值继承 BASE 站立姿态）
+ * keyframes: [时间, 姿态局部值, ease?]
  * spin: 整体旋转（转身 / 前倾），origin 为 SVG 坐标旋转轴心
+ * analysis: 动作分析 —— joints=驱动关节(高亮脉动) + 发力/重心/注意
  * ============================================================ */
 window.BJ_MOVES = [
   {
@@ -12,13 +13,19 @@ window.BJ_MOVES = [
     diff: 4,
     tags: ['传奇', '必学'],
     music: '现场版副歌后的间奏段（1983 Motown 25）',
+    analysis: {
+      joints: ['ankle', 'knee', 'hip'],
+      power: '前脚掌蹬地，脚底全程贴地滑行',
+      weight: '重心左右交替，始终落在支撑脚上',
+      note: '滑幅小而匀速，上身保持不动才有"悬浮感"',
+    },
     keyframes: [
-      [0.0, { x: 0,  hipL: 0, kneeL: 0,  footL: 0,   hipR: 0, kneeR: 62, footR: -12, shL: 16, elL: 26, shR: -10, elR: 22, y: 0 }, 'power2.inOut'],
-      [0.45, { x: -3, hipL: -5, kneeL: 48, footL: 14, hipR: 0, kneeR: 8,  footR: -6,  shL: 6,  elL: 14, shR: -20, elR: 14, y: -1 }, 'power2.inOut'],
-      [0.9, { x: -6, hipL: 0, kneeL: 0,  footL: 0,   hipR: 0, kneeR: 58, footR: -12, shL: 18, elL: 22, shR: -8,  elR: 22, y: 0 }, 'power2.inOut'],
-      [1.35, { x: -9, hipL: -5, kneeL: 44, footL: 12, hipR: 0, kneeR: 6,  footR: -6,  shL: 8,  elL: 12, shR: -18, elR: 14, y: -1 }, 'power2.inOut'],
-      [1.8, { x: -12, hipL: 0, kneeL: 0,  footL: 0,   hipR: 0, kneeR: 60, footR: -12, shL: 16, elL: 26, shR: -10, elR: 22, y: 0 }, 'power2.inOut'],
-      [2.4, { x: 0,  hipL: 0, kneeL: 0,  footL: 0,   hipR: 0, kneeR: 62, footR: -12, shL: 16, elL: 26, shR: -10, elR: 22, y: 0 }, 'power2.inOut'],
+      [0.0, { x: 0,  hipL: 0, kneeL: 0,  hipR: 0, kneeR: 60, shL: 16, elL: 26, shR: -10, elR: 22, y: 0 }, 'power2.inOut'],
+      [0.4, { x: -3, hipL: -6, kneeL: 46, hipR: 0, kneeR: 6,  shL: 6,  elL: 14, shR: -22, elR: 14, y: -1.5 }, 'power2.inOut'],
+      [0.85, { x: -6, hipL: 0, kneeL: 0,  hipR: 0, kneeR: 56, shL: 18, elL: 22, shR: -8,  elR: 22, y: 0 }, 'power2.inOut'],
+      [1.25, { x: -9, hipL: -6, kneeL: 42, hipR: 0, kneeR: 4,  shL: 8,  elL: 12, shR: -20, elR: 14, y: -1.5 }, 'power2.inOut'],
+      [1.7, { x: -12, hipL: 0, kneeL: 0,  hipR: 0, kneeR: 58, shL: 16, elL: 26, shR: -10, elR: 22, y: 0 }, 'power2.inOut'],
+      [2.3, { x: 0,  hipL: 0, kneeL: 0,  hipR: 0, kneeR: 60, shL: 16, elL: 26, shR: -10, elR: 22, y: 0 }, 'power2.inOut'],
     ],
     steps: [
       '双脚并拢站立，重心压在前脚掌，脚后跟微微离地',
@@ -48,13 +55,19 @@ window.BJ_MOVES = [
     diff: 2,
     tags: ['定格', '标志'],
     music: '副歌第 4 小节末尾，常用来"刹车"定格',
+    analysis: {
+      joints: ['ankle', 'hip', 'shoulder'],
+      power: '踝关节爆发踮起，脚跟离地',
+      weight: '重心垂直向上，核心锁定保持平衡',
+      note: '「起-定-落」三拍分明，手臂跟着起落',
+    },
     keyframes: [
       [0.0, {}, 'power2.out'],
       [0.5, { y: -4, kneeL: 10, kneeR: 10, shL: 8, elL: 12, shR: -8, elR: 12 }, 'power2.out'],
-      [0.9, { y: -24, footL: 32, footR: 32, kneeL: 0, kneeR: 0, shL: -6, elL: 6, shR: 165, elR: -20 }, 'power3.out'],
-      [1.4, { y: -24, footL: 32, footR: 32, kneeL: 0, kneeR: 0, shL: -10, elL: 0, shR: 165, elR: -20, headTilt: -5 }, 'power1.inOut'],
-      [2.2, { y: -20, footL: 26, footR: 26, kneeL: 0, kneeR: 0, shL: -6, elL: 6, shR: 150, elR: -15 }, 'power1.inOut'],
-      [2.8, { y: 0, footL: 0, footR: 0, kneeL: 0, kneeR: 0, shL: 0, elL: 0, shR: 0, elR: 0, headTilt: 0 }, 'power2.inOut'],
+      [0.95, { y: -26, kneeL: 0, kneeR: 0, shL: -6, elL: 6, shR: 168, elR: -14 }, 'power3.out'],
+      [1.45, { y: -26, kneeL: 0, kneeR: 0, shL: -10, elL: 0, shR: 168, elR: -14, headTilt: -5 }, 'power1.inOut'],
+      [2.25, { y: -21, kneeL: 0, kneeR: 0, shL: -6, elL: 6, shR: 150, elR: -10 }, 'power1.inOut'],
+      [2.85, { y: 0, kneeL: 0, kneeR: 0, shL: 0, elL: 0, shR: 0, elR: 0, headTilt: 0 }, 'power2.inOut'],
     ],
     steps: [
       '站直，双脚并拢，核心轻轻收紧',
@@ -82,13 +95,19 @@ window.BJ_MOVES = [
     diff: 3,
     tags: ['连接步', '流畅'],
     music: '主歌段，边走边滑的过渡动作',
+    analysis: {
+      joints: ['hip', 'knee', 'ankle'],
+      power: '大腿带动整条腿横向送出',
+      weight: '重心随移动方向横移，两脚交替承重',
+      note: '脚底粘地、膝盖微屈，滑完立刻接下一步',
+    },
     keyframes: [
-      [0.0, { x: 0, hipL: 6, hipR: 6, shL: 10, elL: 20, shR: -8, elR: 15 }, 'power2.inOut'],
-      [0.45, { x: 8, hipL: -16, hipR: -6, kneeL: 30, y: -2, shL: 6, elL: 14, shR: -14, elR: 18 }, 'power2.inOut'],
-      [0.9, { x: 14, hipL: 0, hipR: 0, kneeL: 0, y: 0, shL: 10, elL: 20, shR: -8, elR: 15 }, 'power2.inOut'],
-      [1.4, { x: 10, hipL: 14, hipR: 6, kneeR: 30, y: -2, shL: -14, elL: 18, shR: 6, elR: 14 }, 'power2.inOut'],
-      [1.85, { x: 0, hipL: 0, hipR: 0, kneeR: 0, y: 0, shL: 10, elL: 20, shR: -8, elR: 15 }, 'power2.inOut'],
-      [2.6, { x: 0, hipL: 6, hipR: 6, shL: 10, elL: 20, shR: -8, elR: 15 }, 'power2.inOut'],
+      [0.0, { x: 0, hipL: 8, hipR: 8, shL: 10, elL: 20, shR: -8, elR: 15 }, 'power2.inOut'],
+      [0.45, { x: 9, hipL: -20, hipR: -8, kneeL: 34, y: -2, shL: 6, elL: 14, shR: -16, elR: 18 }, 'power2.inOut'],
+      [0.95, { x: 16, hipL: 0, hipR: 0, kneeL: 0, y: 0, shL: 10, elL: 20, shR: -8, elR: 15 }, 'power2.inOut'],
+      [1.45, { x: 10, hipL: 18, hipR: 8, kneeR: 34, y: -2, shL: -16, elL: 18, shR: 6, elR: 14 }, 'power2.inOut'],
+      [1.95, { x: 0, hipL: 0, hipR: 0, kneeR: 0, y: 0, shL: 10, elL: 20, shR: -8, elR: 15 }, 'power2.inOut'],
+      [2.7, { x: 0, hipL: 8, hipR: 8, shL: 10, elL: 20, shR: -8, elR: 15 }, 'power2.inOut'],
     ],
     steps: [
       '双脚并拢站立，膝盖微屈，像站在冰面上',
@@ -116,14 +135,20 @@ window.BJ_MOVES = [
     diff: 4,
     tags: ['爆发', '耍帅'],
     music: '副歌第 5 拍起跳，转完正好接定格',
+    analysis: {
+      joints: ['ankle', 'hip', 'shoulder'],
+      power: '轴心脚前脚掌捻地发力旋转',
+      weight: '身体收紧，重心压在旋转轴上',
+      note: '盯点转头防晕，转完立刻定格一拍',
+    },
     spin: [
-      { at: 0.6, to: 360, dur: 1.0, origin: '100 95', ease: 'power2.inOut' },
+      { at: 0.55, to: 360, dur: 1.05, origin: '120 100', ease: 'power2.inOut' },
     ],
     keyframes: [
       [0.0, {}, 'power2.out'],
-      [0.4, { hipR: 65, kneeR: 90, shL: 25, elL: 30, shR: -25, elR: 30, y: -2 }, 'power2.out'],
-      [0.6, { hipR: 65, kneeR: 90, shL: 25, elL: 30, shR: -25, elR: 30, y: -2, headTilt: 6 }, 'power2.inOut'],
-      [1.6, { hipR: 65, kneeR: 90, shL: 25, elL: 30, shR: -25, elR: 30, y: -2, headTilt: 6 }, 'power1.inOut'],
+      [0.35, { hipR: 62, kneeR: 88, shL: 25, elL: 30, shR: -25, elR: 30, y: -2 }, 'power2.out'],
+      [0.55, { hipR: 62, kneeR: 88, shL: 25, elL: 30, shR: -25, elR: 30, y: -2, headTilt: 6 }, 'power1.inOut'],
+      [1.6, { hipR: 62, kneeR: 88, shL: 25, elL: 30, shR: -25, elR: 30, y: -2, headTilt: 6 }, 'power1.inOut'],
       [2.0, { hipR: 0, kneeR: 0, shL: 0, elL: 0, shR: 0, elR: 0, y: 0, headTilt: 0 }, 'power2.out'],
       [2.5, {}, 'power1.inOut'],
     ],
@@ -153,12 +178,18 @@ window.BJ_MOVES = [
     diff: 3,
     tags: ['高光', 'hee-hee'],
     music: '副歌"People always told me…"处常用踢腿加手指天',
+    analysis: {
+      joints: ['hip', 'knee', 'shoulder'],
+      power: '髋关节外展抬起，膝盖发力踢直',
+      weight: '单腿支撑，核心稳定不后仰',
+      note: '踢到最高点定格一拍，再顺势收回',
+    },
     keyframes: [
       [0.0, {}, 'power2.out'],
-      [0.5, { hipR: 42, kneeR: 72, y: -3, shR: 12, elR: 22, shL: -10, elL: 16 }, 'power2.out'],
-      [1.0, { hipR: 82, kneeR: 0, y: -9, lean: -7, shR: 152, elR: -18, shL: -62, elL: -72, headTilt: 8 }, 'power3.out'],
-      [1.55, { hipR: 82, kneeR: 0, y: -9, lean: -7, shR: 152, elR: -18, shL: -62, elL: -72, headTilt: 8 }, 'power1.inOut'],
-      [2.1, { hipR: 42, kneeR: 72, y: -3, lean: 0, shR: 12, elR: 22, shL: -10, elL: 16, headTilt: 0 }, 'power2.out'],
+      [0.5, { hipR: 40, kneeR: 70, y: -3, shR: 12, elR: 22, shL: -10, elL: 16 }, 'power2.out'],
+      [1.0, { hipR: 80, kneeR: 0, y: -9, lean: -8, shR: 155, elR: -16, shL: -64, elL: -70, headTilt: 8 }, 'power3.out'],
+      [1.55, { hipR: 80, kneeR: 0, y: -9, lean: -8, shR: 155, elR: -16, shL: -64, elL: -70, headTilt: 8 }, 'power1.inOut'],
+      [2.1, { hipR: 40, kneeR: 70, y: -3, lean: 0, shR: 12, elR: 22, shL: -10, elL: 16, headTilt: 0 }, 'power2.out'],
       [2.6, {}, 'power2.out'],
     ],
     steps: [
@@ -183,17 +214,23 @@ window.BJ_MOVES = [
     id: 'heeltoe',
     en: 'Heel-Toe Slide',
     cn: '脚跟脚尖滑动',
-    icon: '👠',
+    icon: '👞',
     diff: 3,
     tags: ['脚法', '节奏'],
     music: '间奏段原地小碎步，跟着鼓点踩',
+    analysis: {
+      joints: ['ankle', 'knee', 'hip'],
+      power: '踝关节「踮-压」卷动，脚跟碾地',
+      weight: '重心轻微上下起伏，不左右晃',
+      note: '节奏均匀踩拍：一哒、二哒',
+    },
     keyframes: [
-      [0.0, { footL: 0, footR: 0, y: 0 }, 'power2.inOut'],
-      [0.3, { footR: 28, y: -7, kneeR: 14, shR: 14, elR: 22, shL: -12, elL: 16 }, 'power2.inOut'],
-      [0.7, { footR: -24, y: -2, kneeR: 4, x: 2, shR: 8, elR: 14, shL: -8, elL: 12 }, 'power2.inOut'],
-      [1.1, { footL: 28, y: -7, kneeL: 14, x: -2, shL: -12, elL: 16, shR: 14, elR: 22 }, 'power2.inOut'],
-      [1.5, { footL: -24, y: -2, kneeL: 4, x: 0, shL: -8, elL: 12, shR: 8, elR: 14 }, 'power2.inOut'],
-      [2.2, { footL: 0, footR: 0, y: 0, kneeL: 0, kneeR: 0 }, 'power2.inOut'],
+      [0.0, { y: 0 }, 'power2.inOut'],
+      [0.3, { y: -7, kneeR: 14, shR: 14, elR: 22, shL: -12, elL: 16 }, 'power2.inOut'],
+      [0.7, { y: -2, kneeR: 4, x: 2, shR: 8, elR: 14, shL: -8, elL: 12 }, 'power2.inOut'],
+      [1.1, { y: -7, kneeL: 14, x: -2, shL: -12, elL: 16, shR: 14, elR: 22 }, 'power2.inOut'],
+      [1.5, { y: -2, kneeL: 4, x: 0, shL: -8, elL: 12, shR: 8, elR: 14 }, 'power2.inOut'],
+      [2.2, { y: 0, kneeL: 0, kneeR: 0 }, 'power2.inOut'],
     ],
     steps: [
       '双脚并拢，先练右脚：脚尖踮起',
@@ -222,9 +259,15 @@ window.BJ_MOVES = [
     tags: ['高风险', '进阶'],
     danger: true,
     music: 'Smooth Criminal 标志动作；Billie Jean 现场会小幅前倾',
+    analysis: {
+      joints: ['ankle', 'hip', 'knee'],
+      power: '跟腱与核心共同支撑，脚趾抓地',
+      weight: '身体保持一条直线，整体前倾',
+      note: '危险动作：15° 起步，扶墙或有人保护',
+    },
     spin: [
-      { at: 1.2, to: 40, dur: 1.1, origin: '100 186', ease: 'power2.inOut' },
-      { at: 3.0, to: 0, dur: 0.6, origin: '100 186', ease: 'power2.out' },
+      { at: 1.2, to: 40, dur: 1.1, origin: '120 200', ease: 'power2.inOut' },
+      { at: 3.0, to: 0, dur: 0.6, origin: '120 200', ease: 'power2.out' },
     ],
     keyframes: [
       [0.0, {}, 'power2.out'],
@@ -260,6 +303,12 @@ window.BJ_MOVES = [
     diff: 2,
     tags: ['手势', '表演'],
     music: '副歌开头，抓帽甩帽之后指向镜头',
+    analysis: {
+      joints: ['shoulder', 'elbow', 'wrist'],
+      power: '手腕发力甩帽，不是整条胳膊抡',
+      weight: '上半身主导，下肢站稳不晃',
+      note: '眼神跟手走，定格要干脆',
+    },
     keyframes: [
       [0.0, {}, 'power2.out'],
       [0.4, { shR: 118, elR: 46, y: -2, headTilt: 3 }, 'power2.out'],

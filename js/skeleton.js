@@ -1,156 +1,283 @@
 /* ============================================================
- * Billie Jean Dance — 火柴人骨骼引擎 (SVG + 正向运动学)
- * 关节角度 → 二维坐标，GSAP 在 onUpdate 里逐帧驱动
+ * Billie Jean Dance — MJ 小人模型引擎 (SVG 正向运动学)
+ * 有粗细的四肢(胶囊)、躯干/髋部宽度、礼帽、单只白手套、
+ * 10 个彩色关节标记 + 中文标签，驱动关节可高亮脉动。
+ * 关节角度 → 坐标，GSAP 在 onUpdate 里逐帧驱动。
  * ============================================================ */
 (function (global) {
   'use strict';
 
   var NS = 'http://www.w3.org/2000/svg';
+  var VIEW = '0 0 240 240';
 
-  // 骨架比例（viewBox 0 0 200 222）
+  // ---- 身体比例与配色（MJ 风：黑外套/黑裤/白袜/黑皮鞋/白手套/礼帽）----
   var C = {
-    hipX: 100, hipY: 118,
-    torso: 56,        // 髋→肩
-    upper: 26, fore: 24,   // 上臂 / 前臂
-    thigh: 34, shin: 34,   // 大腿 / 小腿
-    headR: 13,
-    footLen: 16,
+    hipX: 120, hipY: 136,          // 髋心（全局 y 向下）
+    shoulderHalf: 15, hipHalf: 8.5, // 半肩宽 / 半髋宽
+    torso: 50, neck: 7,             // 髋心→肩心 / 肩→颈顶
+    headR: 11.5,
+    upperArm: 25, foreArm: 21, handR: 4.8,
+    thigh: 31, shin: 29,            // 踝 y ≈ 196
+    footLen: 16, shoeW: 8.5,
+    skin: '#ecb98d',
+    hair: '#1b1b22',
+    jacket: '#26262e', jacketEdge: '#141419', belt: '#101014',
+    shirt: '#efeae0',
+    pants: '#1d1d24',
+    sock: '#f2efe6',
+    shoe: '#0e0e13',
+    glove: '#f7f4ec',
+    hatC: '#15151a', hatBand: '#8a6d2f',
   };
 
-  var rad = function (d) { return (d * Math.PI) / 180; };
-  // 角度 0 = 竖直向下；正角度 → 屏幕右侧 (+x)；180° = 竖直向上
-  var dir = function (a) { return [Math.sin(a), Math.cos(a)]; };
+  var JOINT_DEF = {
+    shoulder: { cn: '肩', en: 'Shoulder', color: '#ff6b6b' },
+    elbow:    { cn: '肘', en: 'Elbow',    color: '#ffa94d' },
+    wrist:    { cn: '腕', en: 'Wrist',    color: '#ffd43b' },
+    hip:      { cn: '髋', en: 'Hip',      color: '#c084fc' },
+    knee:     { cn: '膝', en: 'Knee',     color: '#60a5fa' },
+    ankle:    { cn: '踝', en: 'Ankle',    color: '#4ade80' },
+  };
+  var SIDES = ['L', 'R'];
 
-  /* ---------- 正向运动学：姿态 → 各关节坐标 ---------- */
+  var rad = function (d) { return d * Math.PI / 180; };
+  function rot(x, y, a) {
+    var c = Math.cos(a), s = Math.sin(a);
+    return { x: x * c - y * s, y: x * s + y * c };
+  }
+  function el(tag, attrs, parent) {
+    var n = document.createElementNS(NS, tag);
+    for (var k in attrs) n.setAttribute(k, attrs[k]);
+    if (parent) parent.appendChild(n);
+    return n;
+  }
+
+  /* ---------------- 正向运动学：姿态 → 全部关节点 ---------------- */
   function fk(p) {
-    var H = { x: C.hipX + (p.x || 0), y: C.hipY + (p.y || 0) };
-    var lean = rad(p.lean || 0);
-    // 躯干：绕髋部前倾/后仰
-    var S = {
-      x: H.x + C.torso * Math.sin(lean),
-      y: H.y - C.torso * Math.cos(lean),
-    };
-    var head = {
-      x: S.x + (p.headTilt || 0) * 3,
-      y: S.y - C.headR - 3,
-    };
+    var leanA = rad(p.lean || 0);
+    var hipC = { x: C.hipX + (p.x || 0), y: C.hipY + (p.y || 0) };
+    // 躯干轴线（髋心→肩心），lean 为侧倾
+    var axis = rot(0, -C.torso, leanA);
+    var perp = rot(1, 0, leanA); // 屏幕水平方向
+    var shoulderC = { x: hipC.x + axis.x, y: hipC.y + axis.y };
+    var shL = { x: shoulderC.x - perp.x * C.shoulderHalf, y: shoulderC.y - perp.y * C.shoulderHalf };
+    var shR = { x: shoulderC.x + perp.x * C.shoulderHalf, y: shoulderC.y + perp.y * C.shoulderHalf };
+    // 脖子 & 头（headTilt 绕颈顶旋转）
+    var neckUnit = { x: axis.x / C.torso, y: axis.y / C.torso };
+    var neckTop = { x: shoulderC.x + neckUnit.x * C.neck, y: shoulderC.y + neckUnit.y * C.neck };
+    var tiltA = rad(p.headTilt || 0);
+    var headOff = rot(0, -(C.headR + 2.5), tiltA);
+    var headC = { x: neckTop.x + headOff.x, y: neckTop.y + headOff.y };
+    var hipL = { x: hipC.x - perp.x * C.hipHalf, y: hipC.y - perp.y * C.hipHalf };
+    var hipR = { x: hipC.x + perp.x * C.hipHalf, y: hipC.y + perp.y * C.hipHalf };
 
-    // 手臂：肩→肘→手
-    function arm(ang, elbow) {
-      var a = rad(ang);
-      var d1 = dir(a);
-      var E = { x: S.x + d1[0] * C.upper, y: S.y + d1[1] * C.upper };
-      var b = rad(ang + elbow);
-      var d2 = dir(b);
-      return {
-        E: E,
-        H: { x: E.x + d2[0] * C.fore, y: E.y + d2[1] * C.fore },
-      };
+    // 手臂：肩 → 肘 → 手（角度 0=向下，正=朝右，180=朝上）
+    function arm(base, angDeg, bendDeg) {
+      var d1 = rot(0, 1, rad(angDeg));
+      var E = { x: base.x + d1.x * C.upperArm, y: base.y + d1.y * C.upperArm };
+      var d2 = rot(d1.x, d1.y, rad(bendDeg));
+      var H = { x: E.x + d2.x * C.foreArm, y: E.y + d2.y * C.foreArm };
+      return { E: E, H: H };
+    }
+    // 腿：髋 → 膝 → 踝（屈膝时小腿视觉缩短；脚为小斜块）
+    function leg(base, angDeg, bendDeg, side) {
+      var d1 = rot(0, 1, rad(angDeg));
+      var K = { x: base.x + d1.x * C.thigh, y: base.y + d1.y * C.thigh };
+      var b = Math.max(0, Math.min(bendDeg || 0, 115));
+      var eff = C.shin * (1 - 0.42 * b / 115);
+      var d2 = rot(d1.x, d1.y, rad(b * 0.55));
+      var A = { x: K.x + d2.x * eff, y: K.y + d2.y * eff };
+      // 鞋：从踝部向外下方的小斜块
+      var sd = rot(side * 4.5, 9.5, 0);
+      var shoeTip = { x: A.x + sd.x, y: A.y + sd.y };
+      return { K: K, A: A, shoeTip: shoeTip };
     }
 
-    // 腿：髋→膝→踝 (+脚)。side: -1 左 / +1 右
-    function leg(ang, bend, footA, side) {
-      var a = rad(ang);
-      var d1 = dir(a);
-      var K = { x: H.x + d1[0] * C.thigh, y: H.y + d1[1] * C.thigh };
-      var b = Math.min(bend, 105);
-      // 屈膝时小腿在正面视角"缩短"，模拟脚向后收
-      var eff = C.shin * (1 - 0.5 * (Math.max(0, b) / 105));
-      var c = rad(ang + b * 0.45);
-      var d2 = dir(c);
-      var A = { x: K.x + d2[0] * eff, y: K.y + d2[1] * eff };
-      var fa = rad(footA || 0);
-      var F = {
-        x: A.x + side * Math.cos(fa) * C.footLen,
-        y: A.y - Math.sin(fa) * C.footLen,
-      };
-      return { K: K, A: A, F: F };
-    }
+    var aL = arm(shL, p.shL || 0, p.elL || 0);
+    var aR = arm(shR, p.shR || 0, p.elR || 0);
+    var gL = leg(hipL, p.hipL || 0, p.kneeL || 0, -1);
+    var gR = leg(hipR, p.hipR || 0, p.kneeR || 0, 1);
 
     return {
-      H: H, S: S, head: head,
-      aL: arm(p.shL || 0, p.elL || 0),
-      aR: arm(p.shR || 0, p.elR || 0),
-      lL: leg(p.hipL || 0, p.kneeL || 0, p.footL || 0, -1),
-      lR: leg(p.hipR || 0, p.kneeR || 0, p.footR || 0, 1),
+      hipC: hipC, shoulderC: shoulderC, neckTop: neckTop, headC: headC,
+      shL: shL, shR: shR, hipL: hipL, hipR: hipR,
+      aL: aL, aR: aR, gL: gL, gR: gR,
+      joints: {
+        shoulderL: shL, shoulderR: shR,
+        elbowL: aL.E, elbowR: aR.E,
+        wristL: aL.H, wristR: aR.H,
+        hipL: hipL, hipR: hipR,
+        kneeL: gL.K, kneeR: gR.K,
+        ankleL: gL.A, ankleR: gR.A,
+      },
     };
   }
 
-  /* ---------- 在 svg 里创建骨骼元素 ---------- */
-  function createSkeleton(svg, opts) {
+  /* ---------------- 在 svg 里创建完整小人 ---------------- */
+  function createFigure(svg, opts) {
     opts = opts || {};
-    var g = document.createElementNS(NS, 'g');
-    g.setAttribute('class', 'bj-root');
-    svg.appendChild(g);
+    var root = el('g', { 'class': 'bj-root' }, svg);
+    var fig = { root: root };
 
-    function line(cls) {
-      var n = document.createElementNS(NS, 'line');
-      n.setAttribute('class', cls || 'bj-seg');
-      g.appendChild(n);
-      return n;
+    // 带色胶囊线段
+    function cap(cls, color, w) {
+      var e = el('path', { 'class': cls }, root);
+      e.setAttribute('stroke', color);
+      e.setAttribute('stroke-width', w);
+      e.setAttribute('stroke-linecap', 'round');
+      e.setAttribute('fill', 'none');
+      return e;
     }
-
-    var segs = {};
-    ['spine', 'armL1', 'armL2', 'armR1', 'armR2',
-      'legL1', 'legL2', 'legR1', 'legR2', 'footL', 'footR'].forEach(function (k) {
-        segs[k] = line();
-      });
-
-    segs.head = document.createElementNS(NS, 'circle');
-    segs.head.setAttribute('class', 'bj-seg');
-    segs.head.setAttribute('r', C.headR);
-    g.appendChild(segs.head);
-
+    // 腿（后层）
+    fig.thighL = cap('bj-thighL', C.pants, 11);
+    fig.shinL = cap('bj-shinL', C.pants, 9.5);
+    fig.sockL = cap('bj-sockL', C.sock, 7.5);
+    fig.shoeL = cap('bj-shoeL', C.shoe, C.shoeW);
+    fig.thighR = cap('bj-thighR', C.pants, 11);
+    fig.shinR = cap('bj-shinR', C.pants, 9.5);
+    fig.sockR = cap('bj-sockR', C.sock, 7.5);
+    fig.shoeR = cap('bj-shoeR', C.shoe, C.shoeW);
+    // 躯干（含腰带）
+    fig.torso = el('path', { 'class': 'bj-torso' }, root);
+    fig.torso.setAttribute('fill', C.jacket);
+    fig.torso.setAttribute('stroke', C.jacketEdge);
+    fig.torso.setAttribute('stroke-width', 1.2);
+    fig.torso.setAttribute('stroke-linejoin', 'round');
+    fig.belt = cap('bj-belt', C.belt, 3.4);
+    // 手臂（层叠于躯干之上）
+    fig.armL1 = cap('bj-armL1', C.jacket, 9.5);
+    fig.armL2 = cap('bj-armL2', C.jacket, 8);
+    fig.armR1 = cap('bj-armR1', C.jacket, 9.5);
+    fig.armR2 = cap('bj-armR2', C.jacket, 8);
+    // 手（左手肤色 / 右手白手套）
+    fig.handL = el('circle', { 'class': 'bj-handL' }, root);
+    fig.handL.setAttribute('r', C.handR);
+    fig.handL.setAttribute('fill', C.skin);
+    fig.handR = el('circle', { 'class': 'bj-handR' }, root);
+    fig.handR.setAttribute('r', C.handR);
+    fig.handR.setAttribute('fill', C.glove);
+    fig.handR.setAttribute('stroke', '#d9d4c8');
+    fig.handR.setAttribute('stroke-width', 0.8);
+    // 脖子 / 头 / 头发 / 礼帽
+    fig.neck = cap('bj-neck', C.skin, 9);
+    fig.head = el('circle', { 'class': 'bj-head' }, root);
+    fig.head.setAttribute('r', C.headR);
+    fig.head.setAttribute('fill', C.skin);
+    fig.hair = el('path', { 'class': 'bj-hair' }, root);
+    fig.hair.setAttribute('fill', 'none');
+    fig.hair.setAttribute('stroke', C.hair);
+    fig.hair.setAttribute('stroke-width', 5.2);
+    fig.hair.setAttribute('stroke-linecap', 'round');
     if (opts.hat) {
-      segs.brim = line('bj-hat');
-      segs.crown = document.createElementNS(NS, 'path');
-      segs.crown.setAttribute('class', 'bj-hat');
-      g.appendChild(segs.crown);
+      fig.brim = el('ellipse', { 'class': 'bj-brim' }, root);
+      fig.brim.setAttribute('fill', C.hatC);
+      fig.crown = el('path', { 'class': 'bj-crown' }, root);
+      fig.crown.setAttribute('fill', C.hatC);
+      fig.band = el('path', { 'class': 'bj-band' }, root);
+      fig.band.setAttribute('fill', 'none');
+      fig.band.setAttribute('stroke', C.hatBand);
+      fig.band.setAttribute('stroke-width', 2.2);
     }
+    // ---- 关节标记：10 个 (肩肘腕髋膝踝 × 左右) ----
+    fig.jgrps = {};
+    Object.keys(JOINT_DEF).forEach(function (type) {
+      SIDES.forEach(function (side) {
+        var key = type + side;
+        var g = el('g', { 'class': 'jgrp', 'data-j': key }, root);
+        var ring = el('circle', { 'class': 'j-ring' }, g);
+        ring.setAttribute('r', 4.6);
+        ring.setAttribute('fill', 'none');
+        ring.setAttribute('stroke', JOINT_DEF[type].color);
+        ring.setAttribute('stroke-width', 1.7);
+        var core = el('circle', { 'class': 'j-core' }, g);
+        core.setAttribute('r', 2.4);
+        core.setAttribute('fill', JOINT_DEF[type].color);
+        var label = el('text', { 'class': 'j-label' }, g);
+        label.textContent = JOINT_DEF[type].cn;
+        label.setAttribute('font-size', 10);
+        label.setAttribute('fill', JOINT_DEF[type].color);
+        label.setAttribute('font-weight', 700);
+        label.setAttribute('paint-order', 'stroke');
+        label.setAttribute('stroke', '#07070b');
+        label.setAttribute('stroke-width', 3);
+        label.setAttribute('stroke-linejoin', 'round');
+        fig.jgrps[key] = { g: g, ring: ring, core: core, label: label, side: side };
+      });
+    });
 
-    segs.root = g;
-    segs._svg = svg;
-    return segs;
+    // 激活关节（本动作驱动关节）→ 高亮脉动
+    var active = opts.activeJoints || [];
+    Object.keys(fig.jgrps).forEach(function (key) {
+      var type = key.replace(/[LR]$/, '');
+      if (active.indexOf(type) !== -1) fig.jgrps[key].g.classList.add('is-active');
+    });
+
+    fig._svg = svg;
+    return fig;
   }
 
-  /* ---------- 姿态 → 更新所有线段坐标 ---------- */
-  function applyPose(segs, p) {
+  /* ---------------- 姿态 → 更新小人所有元素 ---------------- */
+  function applyPose(fig, p) {
     var f = fk(p);
-    function L(s, a, b) {
-      s.setAttribute('x1', a.x.toFixed(2));
-      s.setAttribute('y1', a.y.toFixed(2));
-      s.setAttribute('x2', b.x.toFixed(2));
-      s.setAttribute('y2', b.y.toFixed(2));
+    function P(e, a, b) { e.setAttribute('d', 'M ' + a.x.toFixed(2) + ' ' + a.y.toFixed(2) + ' L ' + b.x.toFixed(2) + ' ' + b.y.toFixed(2)); }
+    // 腿：大腿→小腿→袜子→鞋
+    P(fig.thighL, f.hipL, f.gL.K); P(fig.shinL, f.gL.K, f.gL.A);
+    P(fig.sockL, f.gL.A, { x: f.gL.A.x, y: f.gL.A.y - 6 }); // 袜子向上延伸
+    P(fig.shoeL, f.gL.A, f.gL.shoeTip);
+    P(fig.thighR, f.hipR, f.gR.K); P(fig.shinR, f.gR.K, f.gR.A);
+    P(fig.sockR, f.gR.A, { x: f.gR.A.x, y: f.gR.A.y - 6 });
+    P(fig.shoeR, f.gR.A, f.gR.shoeTip);
+    // 躯干 & 腰带
+    fig.torso.setAttribute('d',
+      'M ' + f.shL.x.toFixed(2) + ' ' + f.shL.y.toFixed(2) +
+      ' L ' + f.shR.x.toFixed(2) + ' ' + f.shR.y.toFixed(2) +
+      ' L ' + f.hipR.x.toFixed(2) + ' ' + f.hipR.y.toFixed(2) +
+      ' L ' + f.hipL.x.toFixed(2) + ' ' + f.hipL.y.toFixed(2) + ' Z');
+    P(fig.belt, f.hipL, f.hipR);
+    // 手臂 & 手
+    P(fig.armL1, f.shL, f.aL.E); P(fig.armL2, f.aL.E, f.aL.H);
+    P(fig.armR1, f.shR, f.aR.E); P(fig.armR2, f.aR.E, f.aR.H);
+    fig.handL.setAttribute('cx', f.aL.H.x.toFixed(2)); fig.handL.setAttribute('cy', f.aL.H.y.toFixed(2));
+    fig.handR.setAttribute('cx', f.aR.H.x.toFixed(2)); fig.handR.setAttribute('cy', f.aR.H.y.toFixed(2));
+    // 脖子 / 头 / 头发 / 礼帽
+    P(fig.neck, f.shoulderC, f.neckTop);
+    fig.head.setAttribute('cx', f.headC.x.toFixed(2)); fig.head.setAttribute('cy', f.headC.y.toFixed(2));
+    var hR = C.headR;
+    fig.hair.setAttribute('d',
+      'M ' + (f.headC.x - hR * 0.82).toFixed(2) + ' ' + (f.headC.y - 1).toFixed(2) +
+      ' Q ' + (f.headC.x - hR * 0.9).toFixed(2) + ' ' + (f.headC.y - hR * 1.05).toFixed(2) +
+      ' ' + (f.headC.x).toFixed(2) + ' ' + (f.headC.y - hR * 0.62).toFixed(2) +
+      ' Q ' + (f.headC.x + hR * 0.9).toFixed(2) + ' ' + (f.headC.y - hR * 1.05).toFixed(2) +
+      ' ' + (f.headC.x + hR * 0.82).toFixed(2) + ' ' + (f.headC.y - 1).toFixed(2));
+    if (fig.brim) {
+      var bcy = f.headC.y - hR * 0.62;
+      fig.brim.setAttribute('cx', f.headC.x.toFixed(2));
+      fig.brim.setAttribute('cy', bcy.toFixed(2));
+      fig.brim.setAttribute('rx', (hR * 1.5).toFixed(2));
+      fig.brim.setAttribute('ry', (hR * 0.3).toFixed(2));
+      fig.crown.setAttribute('d',
+        'M ' + (f.headC.x - hR * 0.86).toFixed(2) + ' ' + bcy.toFixed(2) +
+        ' Q ' + f.headC.x.toFixed(2) + ' ' + (bcy - hR * 1.55).toFixed(2) +
+        ' ' + (f.headC.x + hR * 0.86).toFixed(2) + ' ' + bcy.toFixed(2) + ' Z');
+      fig.band.setAttribute('d',
+        'M ' + (f.headC.x - hR * 0.86).toFixed(2) + ' ' + bcy.toFixed(2) +
+        ' Q ' + f.headC.x.toFixed(2) + ' ' + (bcy - hR * 0.62).toFixed(2) +
+        ' ' + (f.headC.x + hR * 0.86).toFixed(2) + ' ' + bcy.toFixed(2));
     }
-    L(segs.spine, f.H, f.S);
-    L(segs.armL1, f.S, f.aL.E); L(segs.armL2, f.aL.E, f.aL.H);
-    L(segs.armR1, f.S, f.aR.E); L(segs.armR2, f.aR.E, f.aR.H);
-    L(segs.legL1, f.H, f.lL.K); L(segs.legL2, f.lL.K, f.lL.A);
-    L(segs.legR1, f.H, f.lR.K); L(segs.legR2, f.lR.K, f.lR.A);
-    L(segs.footL, f.lL.A, f.lL.F); L(segs.footR, f.lR.A, f.lR.F);
-    segs.head.setAttribute('cx', f.head.x.toFixed(2));
-    segs.head.setAttribute('cy', f.head.y.toFixed(2));
-    if (segs.brim) {
-      L(segs.brim, { x: f.head.x - 19, y: f.head.y - 4 }, { x: f.head.x + 19, y: f.head.y - 4 });
-      segs.crown.setAttribute('d',
-        'M ' + (f.head.x - 13).toFixed(2) + ' ' + (f.head.y - 4).toFixed(2) +
-        ' Q ' + f.head.x.toFixed(2) + ' ' + (f.head.y - 27).toFixed(2) +
-        ' ' + (f.head.x + 13).toFixed(2) + ' ' + (f.head.y - 4).toFixed(2));
-    }
+    // 关节标记
+    Object.keys(fig.jgrps).forEach(function (key) {
+      var j = fig.jgrps[key];
+      var pt = f.joints[key];
+      if (!pt) return;
+      j.g.setAttribute('transform', 'translate(' + pt.x.toFixed(2) + ' ' + pt.y.toFixed(2) + ')');
+      var lx = j.side === 'L' ? -9 : 9;
+      j.label.setAttribute('x', lx);
+      j.label.setAttribute('y', -9);
+      j.label.setAttribute('text-anchor', j.side === 'L' ? 'end' : 'start');
+    });
   }
 
-  var BASE = {
-    x: 0, y: 0, lean: 0, headTilt: 0,
-    shL: 0, elL: 0, shR: 0, elR: 0,
-    hipL: 0, kneeL: 0, hipR: 0, kneeR: 0,
-    footL: 0, footR: 0,
-  };
-
-  /* ---------- 完整演示组件：骨骼 + 控制条 + GSAP 时间线 ----------
-   * container: 挂载点
-   * move: { keyframes: [[t, pose, ease?], ...], spin?: [{at,to,dur,origin,ease}], loop? }
-   * opts: { hat, mirror, autoplay, speed }
-   */
+  /* ---------------- 完整演示组件：小人 + 控制条 + GSAP 时间线 ---------------- */
   function demo(container, move, opts) {
     opts = opts || {};
 
@@ -159,22 +286,13 @@
     container.appendChild(stage);
 
     var svg = document.createElementNS(NS, 'svg');
-    svg.setAttribute('viewBox', '0 0 200 222');
+    svg.setAttribute('viewBox', VIEW);
     svg.setAttribute('aria-hidden', 'true');
     svg.className.baseVal = 'bj-fig';
     stage.appendChild(svg);
 
-    var segs = createSkeleton(svg, { hat: !!opts.hat });
-
-    var mir = null;
-    if (opts.mirror) {
-      var svg2 = document.createElementNS(NS, 'svg');
-      svg2.setAttribute('viewBox', '0 0 200 222');
-      svg2.setAttribute('aria-hidden', 'true');
-      svg2.className.baseVal = 'bj-fig bj-mirror';
-      stage.appendChild(svg2);
-      mir = createSkeleton(svg2, { hat: !!opts.hat });
-    }
+    var activeJoints = (move.analysis && move.analysis.joints) || [];
+    var fig = createFigure(svg, { hat: !!opts.hat, activeJoints: activeJoints });
 
     // 控制条
     var ctl = document.createElement('div');
@@ -189,6 +307,16 @@
     btnReset.className = 'dctl-btn';
     btnReset.setAttribute('aria-label', '重置');
     btnReset.textContent = '↺';
+    var btnMark = document.createElement('button');
+    btnMark.type = 'button';
+    btnMark.className = 'dctl-btn';
+    btnMark.textContent = '标注';
+    btnMark.setAttribute('aria-pressed', 'false');
+    btnMark.addEventListener('click', function () {
+      var on = stage.classList.toggle('is-labels-all');
+      btnMark.classList.toggle('is-on', on);
+      btnMark.setAttribute('aria-pressed', on ? 'true' : 'false');
+    });
     var speedWrap = document.createElement('div');
     speedWrap.className = 'dctl-speed';
     [0.5, 1, 1.5].forEach(function (s) {
@@ -205,20 +333,19 @@
     });
     ctl.appendChild(btnPlay);
     ctl.appendChild(btnReset);
+    ctl.appendChild(btnMark);
     ctl.appendChild(speedWrap);
     container.appendChild(ctl);
 
     // 姿态代理 + 时间线
-    var pose = Object.assign({}, BASE);
+    var pose = Object.assign({}, BJ.BASE);
     var kfs = move.keyframes;
-    Object.assign(pose, BASE, kfs[0][1]);
+    Object.assign(pose, BJ.BASE, kfs[0][1]);
 
     var tl = gsap.timeline({
       repeat: opts.loop === false ? 0 : -1,
-      repeatDelay: 0,
       defaults: { ease: 'power1.inOut' },
     });
-
     for (var i = 0; i < kfs.length - 1; i++) {
       var t0 = kfs[i][0], t1 = kfs[i + 1][0];
       var vars = Object.assign({}, kfs[i + 1][1]);
@@ -226,58 +353,33 @@
       vars.ease = kfs[i + 1][2] || 'power1.inOut';
       tl.to(pose, vars, t0);
     }
-
-    // 整体旋转（转身 / 前倾）
+    // 整体旋转（转身 / 前倾）——绕 svg 原点
     var spins = move.spin || [];
     spins.forEach(function (sp) {
-      tl.to(segs.root, {
+      tl.to(fig.root, {
         rotation: sp.to,
-        svgOrigin: sp.origin || '100 95',
+        svgOrigin: sp.origin || '120 100',
         duration: sp.dur,
         ease: sp.ease || 'power2.inOut',
       }, sp.at);
-      if (mir) {
-        tl.to(mir.root, {
-          rotation: sp.to,
-          svgOrigin: sp.origin || '100 95',
-          duration: sp.dur,
-          ease: sp.ease || 'power2.inOut',
-        }, sp.at);
-      }
     });
 
     var kfTimes = kfs.map(function (k) { return k[0]; });
-
     tl.eventCallback('onUpdate', function () {
-      applyPose(segs, pose);
-      if (mir) applyPose(mir, pose);
-      // 同步高亮当前教学步骤
+      applyPose(fig, pose);
       var t = tl.time();
       var idx = 0;
-      for (var s = 0; s < kfTimes.length; s++) {
-        if (t >= kfTimes[s] - 0.001) idx = s;
-      }
-      // 步骤高亮：默认查容器本身，也可通过 opts.stepsScope 指定外层
+      for (var s = 0; s < kfTimes.length; s++) if (t >= kfTimes[s] - 0.001) idx = s;
       var steps = (opts.stepsScope || container).querySelectorAll('[data-step]');
       if (idx >= steps.length) idx = steps.length - 1;
-      for (var j = 0; j < steps.length; j++) {
-        steps[j].classList.toggle('is-active', j === idx);
-      }
+      for (var j2 = 0; j2 < steps.length; j2++) steps[j2].classList.toggle('is-active', j2 === idx);
     });
 
-    // 初始姿态
-    applyPose(segs, pose);
-    if (mir) applyPose(mir, pose);
+    applyPose(fig, pose); // 初始姿态
 
-    // 控制
     function toggle() {
-      if (tl.paused()) {
-        tl.play();
-        btnPlay.classList.add('is-playing');
-      } else {
-        tl.pause();
-        btnPlay.classList.remove('is-playing');
-      }
+      if (tl.paused()) { tl.play(); btnPlay.classList.add('is-playing'); }
+      else { tl.pause(); btnPlay.classList.remove('is-playing'); }
     }
     btnPlay.addEventListener('click', toggle);
     btnReset.addEventListener('click', function () {
@@ -285,21 +387,22 @@
       btnPlay.classList.remove('is-playing');
     });
 
-    if (opts.autoplay !== false) {
-      tl.play();
-      btnPlay.classList.add('is-playing');
-    } else {
-      tl.pause(0);
-    }
+    if (opts.autoplay !== false) { tl.play(); btnPlay.classList.add('is-playing'); }
+    else { tl.pause(0); }
 
-    return { tl: tl, pose: pose, segs: segs, mir: mir };
+    return { tl: tl, pose: pose, fig: fig };
   }
 
   global.BJ = {
     fk: fk,
-    createSkeleton: createSkeleton,
+    createFigure: createFigure,
     applyPose: applyPose,
     demo: demo,
-    BASE: BASE,
+    JOINT_DEF: JOINT_DEF,
+    BASE: {
+      x: 0, y: 0, lean: 0, headTilt: 0,
+      shL: 0, elL: 0, shR: 0, elR: 0,
+      hipL: 0, kneeL: 0, hipR: 0, kneeR: 0,
+    },
   };
 })(window);
